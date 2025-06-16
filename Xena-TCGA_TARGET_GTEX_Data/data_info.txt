@@ -1,0 +1,4 @@
+Data was prepareds and downloaded using the UCSC Xena Database:
+  Goldman, M.J., Craft, B., Hastie, M. et al. Visualizing and interpreting cancer genomics data via the Xena platform. Nat Biotechnol (2020). https://doi.org/10.1038/s41587-020-0546-8
+
+The TCGA TARGET GTEX dataset was used, selecting GSL synthetic genes.
