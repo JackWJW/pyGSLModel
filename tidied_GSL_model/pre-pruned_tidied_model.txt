@@ -1,0 +1,6 @@
+The HUMAN-GEM model (Jonathan L. Robinson et al. ,An atlas of human metabolism.Sci. Signal.13,eaaz1482(2020).DOI:10.1126/scisignal.aaz1482) was pruned and tidied to enable faster access to a more compact GSl specific model.
+The HUMAN-GEM model was pruned using pyfastcore (Vlassis N, Pacheco MP, Sauter T (2014) Fast Reconstruction of Compact Context-Specific Metabolic Network Models. PLOS Computational Biology 10(1): e1003424. https://doi.org/10.1371/journal.pcbi.1003424).
+  Core reactions were selecetd through test simulations and preserving sphingolipid metabolism and blood group synthesis subsystems.
+
+Gene names were converted via the mygene api (https://mygene.info/)
+A further set of GSl transport reactions were also removed based on prior knowledge.
