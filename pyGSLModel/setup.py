@@ -17,7 +17,6 @@ setup(
     install_requires=[
         "requests",
         "cobra",
-        "io",
         "pyfastcore",
         "mygene",
         "pandas",
