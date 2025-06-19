@@ -4,6 +4,8 @@ from .model_analysis import *
 from imatpy.parse_gpr import gene_to_rxn_weights
 from imatpy.imat import imat
 
+import numpy as np
+
 ### Function 10 Integrating transcriptomic data for Glioblastoma/Glioma into the model ###
 def TCGA_DEFlux_integrate(model, objective_choice="AC",tissue="Brain",comparison="TCGA",fc_threshold=0.5):
     """
