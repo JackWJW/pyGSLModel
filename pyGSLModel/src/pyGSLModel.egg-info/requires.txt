@@ -1,0 +1,9 @@
+requests
+cobra
+pyfastcore
+mygene
+pandas
+matplotlib
+seaborn
+imatpy
+numpy
