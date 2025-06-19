@@ -281,3 +281,58 @@ def TCGA_iMAT_sample_integrate(model, tissue, upper_quantile = 0.25, lower_quant
     imat_data_merged = pd.merge(df_mini, imat_data, on = "sample").copy()
 
     return imat_data_merged
+
+def iMAT_integrate(model, data, upper_quantile = 0.25, lower_quantile = 0.75, epsilon=1, threshold=0.01):
+    """
+    Performs iMAT transcriptomic integration (using the imatpy package) to generate fluxes for a user supplied dataframe. Columns should be samples, Index should be Gene symbols, with expression as values.
+
+    Inputs:
+    - model : a cobrapy model object
+    - data : a pandas dataframe with Gene Symbols as the index, Columns as the samples and values as normalised and Log2(x+1) transformed expression data.
+    - upper_quantile : Defines the upper bound percentage of gene expression values for a sample to be assigned 1 for iMAT. If 0.25, the top 25% would be assigned 1
+    - lower_quantile : Defines the lower bound percentage of gene expression values for a sample to be assigned -1 for iMAT. If 0.75, the bottom 25% would be assigned -1
+    - epsilon : iMAT maximises the sum of high expressing reactions with flux > epsilon (default 1)
+    - threshold : Alongside epsilon, iMAT maximises the sum of low expressing reactions with flux < threshold (default 0.01)
+    """
+
+    # Defining a helper function to convert expression into 1, 0 or -1 for high, neutral and low expressed genes
+    def convert_col(col):
+        u_q = col.quantile(upper_quantile)
+        l_q = col.quantile(lower_quantile)
+
+        converted = col.copy()
+        converted[col > l_q] = 1
+        converted[col < u_q] = -1
+        converted[(col >= u_q) & (col <= l_q)] = 0
+
+        return converted
+
+    # Converting Values
+    df_converted = data.apply(convert_col).copy()
+
+    # Perform iMAT simulations for each cancer
+    all_rows = {}
+    all_genes = [g.id for g in model.genes]
+    colnames = df_converted.columns.to_list()
+    imat_counter = 0
+    imat_total = len(colnames)
+    for col in colnames:
+        imat_counter += 1
+        print(f"Simulations Performed:{imat_counter}/{imat_total}")
+        model_copy = model.copy()
+        model_weights = pd.Series(df_converted[col])
+        model_weights = model_weights.reindex(all_genes, fill_value=0)
+        imat_weights = gene_to_rxn_weights(model=model_copy,gene_weights=model_weights)
+        imat_results = imat(model=model_copy,rxn_weights=imat_weights,epsilon=epsilon,threshold=threshold)
+
+        #Tabulating results
+        sample_df = tabulate_model_results(model_copy, imat_results)
+        sample_df = sample_df[["Key Product", "Flux (mmol/gDW/hr)"]].copy().set_index("Key Product")
+        sample_df = sample_df.T.copy()
+        sample_df["Cancer"] = col
+        all_rows[f"{col}_iMAT"] = sample_df
+
+    # Building the dataframe
+    imat_data = pd.concat(all_rows.values(), axis=0,ignore_index=True).set_index("Cancer")
+
+    return imat_data
