@@ -182,7 +182,7 @@ def prune_model(model, objective_choice="D14_Neuron",remove_transport="Yes"):
     sim_core_reactions_list = []
 
     for obj_c in ["AC","MG","D14_Neuron","D28_Neuron"]:
-        sol = run_metabolic_model(model,method="LFBA",objective_choice=obj_c)
+        sol = run_metabolic_model(model,method="FBA",objective_choice=obj_c)
         for rid, flux in sol.fluxes.items():
             if flux > 0:
                 sim_core_reactions_list.append(rid)
@@ -599,20 +599,20 @@ def remove_GSL_transport(model):
     return model
 
 ### Function 7: Performing a simulation ###
-def run_metabolic_model(model,method="LFBA",objective_choice="D14_Neuron",knockout="WT"):
+def run_metabolic_model(model,method="FBA",objective_choice="D14_Neuron",knockout="WT"):
     """
     Performs constraint-based metabolic simulation utilising the desired solution method.
     You can also select the objective function for the simulation and choose to knockout a gene.
     
     Inputs:
     - model : a cobra.Model object that should be the model of interest
-    - method : should be one of "LFBA" or "mFBA" for Linear FBA, or multiple linear FBA (mFBA) respctively.
+    - method : should be one of "FBA" or "mFBA" for Linear FBA, or multiple linear FBA (mFBA) respctively.
     - objective_choice : defines which cell styled objective to use for the simulation and should be one of "D14_Neuron", "D28_Neuron", "AC" or "MG".
     - knockout : allows you to input a gene in the format "ABCDE" to be knocked out of the model before performing the simulation. This is set to "WT" for Wild-type by default.
     """
     # Checking method
-    if method not in ["LFBA", "mFBA"]:
-        raise ValueError(f"Invalid method ({method}), please select one of 'LFBA','mFBA'")
+    if method not in ["FBA", "mFBA"]:
+        raise ValueError(f"Invalid method ({method}), please select one of 'FBA','mFBA'")
     
     # Checking objective_choice
     if objective_choice not in ["D14_Neuron", "D28_Neuron", "AC", "MG"]:
@@ -630,11 +630,11 @@ def run_metabolic_model(model,method="LFBA",objective_choice="D14_Neuron",knocko
         except:
             print(f"Gene {knockout} not in model")
 
-    if method == "LFBA":
+    if method == "FBA":
         sol = model.optimize()
     elif method == "mFBA":
         sol = multi_fba(model,objective_choice=objective_choice)
     else:
-        raise ValueError("Selected solution method should be one of 'LFBA' or 'mFBA'")
+        raise ValueError("Selected solution method should be one of 'FBA' or 'mFBA'")
         
     return sol

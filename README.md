@@ -19,6 +19,9 @@ model = convert_genes(model)
 
 # Pruning the model with fastcore to  focus on GSL metabolism
 model = prune_model(model)
+
+# Removing unwanted transport reactions
+model = remove_GSL_transport(model)
 ```
 
 The pruning step takes longer as the function runs a number of test simulations on the full-scale model with different obejctives to ensure it doesn't miss any core reactions, it then subsequently performs fastcore pruning with the pyfastcore package. If you know you want to use the pruned GSL focused model, we made a dedicated function that downloads a pre-pruned and tidied model.
@@ -34,7 +37,7 @@ model = download_GSL_model()
 ### Standard Simulations of Metabolism
 With a prepared model, you are ready to run some metabolic simulations!
 To do this you can make use of the `run_metabolic_model` function. This function allows you to simulate your model given a particular method and objective function.
-The methods include standard FBA which would be enforced via `method = "LFBA"`, a multiple-FBA approach in which multiple solutions are found for different lienar paths within GSL metabolism based on the selected objective and recombined into a distribution representative ensemble model: `method = "mFBA"`. To specify the GSL objective function for simulation you select one of `D14_Neuron` for a Day 14 I3Neuron, `D28_Neuron` for a Day 28 I3Neuron, `AC` for an IAstrocyte or `MG` for an IMicroglia in the `objective_choice=` argument. These define the set of reactions in the objective function that the solution will optimise for.
+The methods include standard FBA which would be enforced via `method = "FBA"`, a multiple-FBA approach in which multiple solutions are found for different lienar paths within GSL metabolism based on the selected objective and recombined into a distribution representative ensemble model: `method = "mFBA"`. To specify the GSL objective function for simulation you select one of `D14_Neuron` for a Day 14 I3Neuron, `D28_Neuron` for a Day 28 I3Neuron, `AC` for an IAstrocyte or `MG` for an IMicroglia in the `objective_choice=` argument. These define the set of reactions in the objective function that the solution will optimise for.
 
 ```python
 # Imports
