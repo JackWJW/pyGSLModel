@@ -3,6 +3,10 @@ from .model_preparation import *
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from cobra import Model
+from cobra.core.solution import Solution
+import networkx as nx
+from pyvis.network import Network
 
 ### Function 8: Generating a results table ###
 def tabulate_model_results(model, sol):
@@ -101,3 +105,103 @@ def plot_model_results(data):
         ax.set(xlabel=None)
     plt.close(fig)
     return fig
+
+def visualise_flux_network(model, solution, file_path="./flux_network_graph.html"):
+    """
+    Generates a diagramatic visualisation of your model solution, with edges and nodes weighted by flux.
+    Writes an html object for the visualisation
+
+    Inputs:
+    - model : cobrapy model object
+    - solution : model solution object
+    - file_path : file path and file name for where to save the output e.g., './flux_network_graph.html'
+    """
+    # Creating a list of metabolites that we want to Record
+    keep_metabolites = [
+    "MAM01904g", # GA1
+    "MAM01905g", # GA2
+    "MAM01941g", # GD1a
+    "MAM01942g", # GD1alpha
+    "MAM01943g", # GD1b
+    "MAM01945g", # GD1c
+    "MAM01946g", # GD2
+    "MAM01947g", # GD3
+    "MAM01912g", # GB5
+    "MAM01959g", # GB4
+    "MAM01960g", # GB3
+    "MAM02008g", # GM1
+    "MAM02010g", # GM1b
+    "MAM02011g", # GM2
+    "MAM02015g", # GM3
+    "MAM02023g", # GQ1b
+    "MAM02025g", # GQ1c
+    "MAM02028g", # GT1a
+    "MAM02030g", # GT1b
+    "MAM02031g", # GT1c
+    "MAM02032g", # GT2
+    "MAM02033g", # GT3
+    "MAM02328g", # LacCer_Pool
+    "MAM02346g", # LC3
+    "MAM02347g", # LC4
+    "MAM02330g", # paragloboside
+    "MAM02904g" # sialylparagloboside
+    ]
+
+    # Collect every reaction involving any of the metabolites in our list
+    keep_rxns = [
+        rxn for rxn in model.reactions
+        if any(m.id in keep_metabolites for m in rxn.metabolites)
+    ]
+
+    # 2) Build bipartite graph: metabolites ↔ reactions
+    G = nx.DiGraph()
+    # Add metabolite nodes
+    for mid in keep_metabolites:
+        if mid in model.metabolites:
+            met = model.metabolites.get_by_id(mid)
+            G.add_node(mid,
+                       label=met.name,
+                       type="met",
+                       color="#F6A6B2",
+                       size=20)
+
+    # Add reaction nodes and edges
+    max_flux = max(abs(solution.fluxes.get(r.id, 0.0)) for r in keep_rxns) or 1.0
+    for rxn in keep_rxns:
+        flux = float(solution.fluxes.get(rxn.id, 0.0))
+        abs_flux = abs(flux)
+        # size reaction by flux
+        G.add_node(
+            rxn.id,
+            label=",".join(g.id for g in rxn.genes) or rxn.id,
+            type="rxn",
+            color="#AED6F1",
+            size= (abs_flux / max_flux) * 30 + 10,
+        )
+        # connect reactants → reaction → products
+        for met, coeff in rxn.metabolites.items():
+            if met.id not in keep_metabolites:
+                continue
+            if coeff < 0:
+                src, tgt = met.id, rxn.id
+            else:
+                src, tgt = rxn.id, met.id
+            G.add_edge(
+                src,
+                tgt,
+                value=(abs_flux / max_flux) * 5 + 1,
+                title=f"flux={flux:.3g}"
+            )
+
+    # 3) Build pyvis Network
+    net = Network(
+        directed=True,
+        height="1080px",
+        width="100%",
+    )
+    # Load from networkx
+    net.from_nx(G)
+
+    # 4) Tweak physics/layout
+    net.force_atlas_2based(gravity=-50, central_gravity=0.01, spring_length=200)
+    net.write_html(file_path)
