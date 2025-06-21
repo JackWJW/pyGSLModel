@@ -90,7 +90,7 @@ results_fig = plot_model_results(results_df)
 ### Transcriptomic Integration
 pyGSLModel includes a number of functions to integrate transcriptomic data with your metabolic model to generate fluxes.
 
-There are three functions to integrate transcriptomic data with the iMAT method (implemented here with imatpy). This method doesn't require a conventional objective function, instead it uses the gene expression data to drive the simulation. This is useful for complex multicellular organisms and tissues, where a clear biological objective is difficult to discern.
+There are four functions to integrate transcriptomic data with the iMAT method (implemented here with imatpy). This method doesn't require a conventional objective function, instead it uses the gene expression data to drive the simulation. This is useful for complex multicellular organisms and tissues, where a clear biological objective is difficult to discern.
 
 Two of the functions utilise TCGA and GTEX data from the TCGA_TARGET_GTEX dataset (Xena).
 
@@ -109,12 +109,31 @@ results_avg_df = TCGA_iMAT_integrate(model, upper_quantile = 0.25, lower_quantil
 results_sample_df = TCGA_iMAT_sample_integrate(model, tissue="Brain", upper_quantile = 0.25, lower_quantile=0.75, epsilon=1, threshold=0.01)
 ```
 
-The third iMAT integration method allows the user to input their own data. The required format is a dataframe where each column represents a different sample and the index contains the gene symbols.
+The third and fourth iMAT integration methods allows the user to input their own data. The required format is a dataframe where each column represents a different sample and the index contains the gene symbols. The first of these methods (`iMAT_integrate`) take a dataframe with only a single column for the sample and returns a cobrapy solution object, the second of these methods (`iMAT_multi_integrate`) can take multiple sample columns but returns a dataframe with the fluxes for each sample stored.
 
 ```python
 # Imports
 import pandas as pd
 from pyGSLModel import iMAT_integrate
+
+### Single Integration ###
+
+import pandas as pd
+# Making a dummy dataframe
+d = {
+    "Gene" : ["B4GALNT1", "ST3GAL5", "ST8SIA1","A4GALT"],
+    "Sample_1" : [8,6,4,2]
+}
+
+# Converting the dictionary to a pandas dataframe and setting the index to Gene
+iMAT_df_1 = pd.DataFrame(d)
+iMAT_df_1 = iMAT_df_1.set_index("Gene").copy()
+
+sol_4 = iMAT_integrate(model_3,iMAT_df_1)
+
+
+### Multi Integration ###
+from pyGSLModel import iMAT_multi_integrate
 
 # Making a mock dataframe
 d = {
@@ -128,7 +147,7 @@ mock_df = pd.DataFrame(d)
 mock_df = mock_df.set_index("Gene")
 
 # Perfoming iMAT
-results_custom_df = iMAT_integrate(model, mock_df, upper_quantile = 0.25, lower_quantile = 0.75, epsilon=1, threshold=0.01)
+results_custom_df = iMAT_multi_integrate(model, mock_df, upper_quantile = 0.25, lower_quantile = 0.75, epsilon=1, threshold=0.01)
 ```
 
 ## Dependencies and License
