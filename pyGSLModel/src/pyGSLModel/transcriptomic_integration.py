@@ -32,7 +32,7 @@ def TCGA_DEFlux_integrate(model, objective_choice="AC",tissue="Brain",comparison
         raise ValueError(f"Invalid objective_choice ({objective_choice}), please select one of 'D14_Neuron','D28_Neuron','AC','MG'")
     
     # Downloading Transcriptomic Data
-    df_input = pd.read_csv("https://raw.githubusercontent.com/JackWJW/pyGSLModel/main/Xena-TCGA_TARGET_GTEX_Data/Xena_Data.tsv",sep='\t')
+    df_input = pd.read_csv("https://raw.githubusercontent.com/JackWJW/pyGSLModel/main/Xena-TCGA_TARGET_GTEX_Data/Xena_Data_New.tsv",sep='\t')
 
     # Checking tissue input is in the dataframe
     all_sites = df_input["_primary_site"].unique().tolist()
@@ -61,10 +61,12 @@ def TCGA_DEFlux_integrate(model, objective_choice="AC",tissue="Brain",comparison
 
     # Calculating and storing the average expression for each gene in the normal samples
 
-    GENE_LIST = ['A4GALT', 'B3GALNT1', 'B3GALT4', 'B3GALT5', 'B3GNT3', 'B3GNT5', 
-                'B4GALNT1', 'B4GALT5', 'B4GALT6', 'GAL3ST1', 'ST3GAL1', 'ST3GAL2', 
-                'ST3GAL4', 'ST3GAL5', 'ST3GAL6', 'ST6GALNAC2', 'ST6GALNAC3', 'ST6GALNAC4', 
-                'ST6GALNAC5', 'ST6GALNAC6', 'ST8SIA1', 'ST8SIA5', 'UGCG', 'UGT8']
+    GENE_LIST = ['A4GALT', 'ABO', 'B3GALNT1', 'B3GALT1', 'B3GALT4', 'B3GALT5', 
+        'B3GNT2', 'B3GNT3', 'B3GNT5', 'B4GALNT1', 'B4GALT5', 'B4GALT6', 
+        'FUT1', 'FUT2', 'FUT3', 'FUT5', 'FUT6', 'FUT9', 
+        'GAL3ST1', 'GCNT2', 'ST3GAL1', 'ST3GAL2', 'ST3GAL3', 'ST3GAL4', 
+        'ST3GAL5', 'ST3GAL6', 'ST6GALNAC2', 'ST6GALNAC3', 'ST6GALNAC4', 'ST6GALNAC5', 
+        'ST6GALNAC6', 'ST8SIA1', 'ST8SIA5', 'UGCG', 'UGT8']
     
     df_cancer[GENE_LIST] = 2**df_cancer[GENE_LIST] - 1
     df_normal[GENE_LIST] = 2**df_normal[GENE_LIST] - 1
@@ -146,14 +148,16 @@ def TCGA_iMAT_integrate(model, upper_quantile = 0.25, lower_quantile = 0.75, eps
     - threshold : Alongside epsilon, iMAT maximises the sum of low expressing reactions with flux < threshold (default 0.01)
     """
     # Downloading and selecting cancer transcriptomic data
-    df_input = pd.read_csv("https://raw.githubusercontent.com/JackWJW/pyGSLModel/main/Xena-TCGA_TARGET_GTEX_Data/Xena_Data.tsv",sep='\t')
+    df_input = pd.read_csv("https://raw.githubusercontent.com/JackWJW/pyGSLModel/main/Xena-TCGA_TARGET_GTEX_Data/Xena_Data_New.tsv",sep='\t')
     df_cancer = df_input[(df_input["_sample_type"].isin(["Primary Tumor", "Normal Tissue"]))&(df_input["_study"].isin(["TCGA","GTEX"]))].copy()
 
     # Defining list of genes for analysis
-    GENE_LIST = ['A4GALT', 'B3GALNT1', 'B3GALT4', 'B3GALT5', 'B3GNT3', 'B3GNT5', 
-                'B4GALNT1', 'B4GALT5', 'B4GALT6', 'GAL3ST1', 'ST3GAL1', 'ST3GAL2', 
-                'ST3GAL4', 'ST3GAL5', 'ST3GAL6', 'ST6GALNAC2', 'ST6GALNAC3', 'ST6GALNAC4', 
-                'ST6GALNAC5', 'ST6GALNAC6', 'ST8SIA1', 'ST8SIA5', 'UGCG', 'UGT8']
+    GENE_LIST = ['A4GALT', 'ABO', 'B3GALNT1', 'B3GALT1', 'B3GALT4', 'B3GALT5', 
+        'B3GNT2', 'B3GNT3', 'B3GNT5', 'B4GALNT1', 'B4GALT5', 'B4GALT6', 
+        'FUT1', 'FUT2', 'FUT3', 'FUT5', 'FUT6', 'FUT9', 
+        'GAL3ST1', 'GCNT2', 'ST3GAL1', 'ST3GAL2', 'ST3GAL3', 'ST3GAL4', 
+        'ST3GAL5', 'ST3GAL6', 'ST6GALNAC2', 'ST6GALNAC3', 'ST6GALNAC4', 'ST6GALNAC5', 
+        'ST6GALNAC6', 'ST8SIA1', 'ST8SIA5', 'UGCG', 'UGT8']
 
     # Preparing averaged data for each cancer
     df_cancer = df_cancer[GENE_LIST+["primary disease or tissue"]].copy()
@@ -220,7 +224,7 @@ def TCGA_iMAT_sample_integrate(model, tissue, upper_quantile = 0.25, lower_quant
     - threshold : Alongside epsilon, iMAT maximises the sum of low expressing reactions with flux < threshold (default 0.01)
     """
     # Downloading transcriptomic data
-    df_input = pd.read_csv("https://raw.githubusercontent.com/JackWJW/pyGSLModel/main/Xena-TCGA_TARGET_GTEX_Data/Xena_Data.tsv",sep='\t')
+    df_input = pd.read_csv("https://raw.githubusercontent.com/JackWJW/pyGSLModel/main/Xena-TCGA_TARGET_GTEX_Data/Xena_Data_New.tsv",sep='\t')
 
     # Checking tissue input is in the dataframe
     all_sites = df_input["_primary_site"].unique().tolist()
@@ -231,14 +235,16 @@ def TCGA_iMAT_sample_integrate(model, tissue, upper_quantile = 0.25, lower_quant
     
 
     # Storing list of key genes:
-    GENE_LIST = ['A4GALT', 'B3GALNT1', 'B3GALT4', 'B3GALT5', 'B3GNT3', 'B3GNT5', 
-            'B4GALNT1', 'B4GALT5', 'B4GALT6', 'GAL3ST1', 'ST3GAL1', 'ST3GAL2', 
-            'ST3GAL4', 'ST3GAL5', 'ST3GAL6', 'ST6GALNAC2', 'ST6GALNAC3', 'ST6GALNAC4', 
-            'ST6GALNAC5', 'ST6GALNAC6', 'ST8SIA1', 'ST8SIA5', 'UGCG', 'UGT8']
+    GENE_LIST = ['A4GALT', 'ABO', 'B3GALNT1', 'B3GALT1', 'B3GALT4', 'B3GALT5', 
+        'B3GNT2', 'B3GNT3', 'B3GNT5', 'B4GALNT1', 'B4GALT5', 'B4GALT6', 
+        'FUT1', 'FUT2', 'FUT3', 'FUT5', 'FUT6', 'FUT9', 
+        'GAL3ST1', 'GCNT2', 'ST3GAL1', 'ST3GAL2', 'ST3GAL3', 'ST3GAL4', 
+        'ST3GAL5', 'ST3GAL6', 'ST6GALNAC2', 'ST6GALNAC3', 'ST6GALNAC4', 'ST6GALNAC5', 
+        'ST6GALNAC6', 'ST8SIA1', 'ST8SIA5', 'UGCG', 'UGT8']
     
     # Data preparation
     df_input = df_input[(df_input["_primary_site"]==tissue)&(df_input["_study"].isin(["TCGA", "GTEX"]))].copy()
-    df_mini = df_input[["sample","_sample_type","primary disease or tissue"]].copy()
+    df_mini = df_input.drop(columns=GENE_LIST).copy()
     df_format = df_input[GENE_LIST+["sample"]].set_index("sample").T.copy()
 
     # Defining a helper function to convert expression into 1, 0 or -1 for high, neutral and low expressed genes
