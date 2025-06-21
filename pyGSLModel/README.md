@@ -124,3 +124,5 @@ Dependecies include:
 - seaborn (BSD)
 - imatpy (MIT)
 - numpy (BSD)
+- networkx (BSD)
+- pyvis (BSD)
