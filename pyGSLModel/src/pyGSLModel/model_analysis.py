@@ -106,7 +106,7 @@ def plot_model_results(data):
     plt.close(fig)
     return fig
 
-def visualise_flux_network(model, solution, file_path="./flux_network_graph.html"):
+def visualise_flux_network(model, solution, file_path="./flux_network_graph.html",height:str="600px",width:str="800px"):
     """
     Generates a diagramatic visualisation of your model solution, with edges and nodes weighted by flux.
     Writes an html object for the visualisation
@@ -196,8 +196,9 @@ def visualise_flux_network(model, solution, file_path="./flux_network_graph.html
     # 3) Build pyvis Network
     net = Network(
         directed=True,
-        height="1080px",
-        width="100%",
+        height=height,
+        width=width,
+        cdn_resources="remote"
     )
     # Load from networkx
     net.from_nx(G)
@@ -205,3 +206,4 @@ def visualise_flux_network(model, solution, file_path="./flux_network_graph.html
     # 4) Tweak physics/layout
     net.force_atlas_2based(gravity=-50, central_gravity=0.01, spring_length=200)
     net.write_html(file_path)
+    print(f"html file wrtten to: {file_path}")
