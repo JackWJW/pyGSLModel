@@ -284,7 +284,7 @@ def TCGA_iMAT_sample_integrate(model, tissue, upper_quantile = 0.25, lower_quant
 
     return imat_data_merged
 
-def iMAT_integrate(model, data, upper_quantile = 0.25, lower_quantile = 0.75, epsilon=1, threshold=0.01):
+def iMAT_multi_integrate(model, data, upper_quantile = 0.25, lower_quantile = 0.75, epsilon=1, threshold=0.01):
     """
     Performs iMAT transcriptomic integration (using the imatpy package) to generate fluxes for a user supplied dataframe. Columns should be samples, Index should be Gene symbols, with expression as values.
 
@@ -338,3 +338,41 @@ def iMAT_integrate(model, data, upper_quantile = 0.25, lower_quantile = 0.75, ep
     imat_data = pd.concat(all_rows.values(), axis=0,ignore_index=True).set_index("Sample")
 
     return imat_data
+
+def iMAT_integrate(model, data, upper_quantile = 0.25, lower_quantile = 0.75, epsilon=1, threshold=0.01):
+    """
+    Performs iMAT transcriptomic integration (using the imatpy package) to generate fluxes for a user supplied dataframe. Columns should be samples, Index should be Gene symbols, with expression as values.
+
+    Inputs:
+    - model : a cobrapy model object
+    - data : a pandas series with Gene Symbols as the index, and values as normalised and Log2(x+1) transformed expression data.
+    - upper_quantile : Defines the upper bound percentage of gene expression values for a sample to be assigned 1 for iMAT. If 0.25, the top 25% would be assigned 1
+    - lower_quantile : Defines the lower bound percentage of gene expression values for a sample to be assigned -1 for iMAT. If 0.75, the bottom 25% would be assigned -1
+    - epsilon : iMAT maximises the sum of high expressing reactions with flux > epsilon (default 1)
+    - threshold : Alongside epsilon, iMAT maximises the sum of low expressing reactions with flux < threshold (default 0.01)
+    """
+
+    # Defining a helper function to convert expression into 1, 0 or -1 for high, neutral and low expressed genes
+    def convert_col(col):
+        u_q = col.quantile(upper_quantile)
+        l_q = col.quantile(lower_quantile)
+
+        converted = col.copy()
+        converted[col > l_q] = 1
+        converted[col < u_q] = -1
+        converted[(col >= u_q) & (col <= l_q)] = 0
+
+        return converted
+
+    # Converting Values
+    df_converted = data.apply(convert_col).copy()
+
+    # Perform iMAT simulation
+    all_genes = [g.id for g in model.genes]
+    model_copy = model.copy()
+    model_weights = df_converted.iloc[:, 0]
+    model_weights = model_weights.reindex(all_genes, fill_value=0)
+    imat_weights = gene_to_rxn_weights(model=model_copy,gene_weights=model_weights)
+    imat_results = imat(model=model_copy,rxn_weights=imat_weights,epsilon=epsilon,threshold=threshold)
+
+    return imat_results
