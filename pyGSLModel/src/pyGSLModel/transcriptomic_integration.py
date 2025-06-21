@@ -160,8 +160,8 @@ def TCGA_iMAT_integrate(model, upper_quantile = 0.25, lower_quantile = 0.75, eps
         'ST6GALNAC6', 'ST8SIA1', 'ST8SIA5', 'UGCG', 'UGT8']
 
     # Preparing averaged data for each cancer
-    df_cancer = df_cancer[GENE_LIST+["primary disease or tissue"]].copy()
-    df_avgs = df_cancer.groupby(["primary disease or tissue"]).mean().T.copy()
+    df_cancer = df_cancer[GENE_LIST+["primary disease or tissue","_sample_type","_primary_site"]].copy()
+    df_avgs = df_cancer.groupby(["primary disease or tissue","_sample_type","_primary_site"]).mean().T.copy()
 
     # Defining a helper function to convert expression into 1, 0 or -1 for high, neutral and low expressed genes
     def convert_col(col):
@@ -197,11 +197,11 @@ def TCGA_iMAT_integrate(model, upper_quantile = 0.25, lower_quantile = 0.75, eps
         sample_df = tabulate_model_results(model_copy, imat_results)
         sample_df = sample_df[["Key Product", "Flux (mmol/gDW/hr)"]].copy().set_index("Key Product")
         sample_df = sample_df.T.copy()
-        sample_df["Cancer"] = col
+        sample_df["tissue"] , sample_df["sample type"], sample_df["primary site"] = col
         all_rows[f"{col}_iMAT"] = sample_df
 
     # Building the dataframe
-    imat_data = pd.concat(all_rows.values(), axis=0,ignore_index=True).set_index("Cancer")
+    imat_data = pd.concat(all_rows.values(), axis=0,ignore_index=True)
 
     return imat_data
 
