@@ -322,6 +322,7 @@ def iMAT_multi_integrate(model, data, upper_quantile = 0.25, lower_quantile = 0.
     df_converted = data.apply(convert_col).copy()
 
     # Perform iMAT simulations for each cancer
+    sol_dict = {}
     all_rows = {}
     all_genes = [g.id for g in model.genes]
     colnames = df_converted.columns.to_list()
@@ -336,6 +337,9 @@ def iMAT_multi_integrate(model, data, upper_quantile = 0.25, lower_quantile = 0.
         imat_weights = gene_to_rxn_weights(model=model_copy,gene_weights=model_weights)
         imat_results = imat(model=model_copy,rxn_weights=imat_weights,epsilon=epsilon,threshold=threshold)
 
+        # Saving iMAT results in a dict
+        sol_dict[f"{col}_sol"] = imat_results
+
         #Tabulating results
         sample_df = tabulate_model_results(model_copy, imat_results)
         sample_df = sample_df[["Key Product", "Flux (mmol/gDW/hr)"]].copy().set_index("Key Product")
@@ -346,7 +350,7 @@ def iMAT_multi_integrate(model, data, upper_quantile = 0.25, lower_quantile = 0.
     # Building the dataframe
     imat_data = pd.concat(all_rows.values(), axis=0,ignore_index=True).set_index("Sample")
 
-    return imat_data
+    return imat_data, sol_dict
 
 def iMAT_integrate(model, data, upper_quantile = 0.25, lower_quantile = 0.75, epsilon=1, threshold=0.01):
     """
