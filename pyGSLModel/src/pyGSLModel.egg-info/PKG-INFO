@@ -94,16 +94,16 @@ There are four functions to integrate transcriptomic data with the iMAT method (
 
 Two of the functions utilise TCGA and GTEX data from the TCGA_TARGET_GTEX dataset (Xena).
 
-The first of these functions: `TCGA_iMAT_Integrate()` takes TCGA data averaged over multiple samples for each cancer/normal tissue and performs iMAT based on genes of GSL metabolism. You can tune the function by adjusting the upper/lower quantiles for how the data is processed. An `upper_quantile = 0.25` and a `lower_quantile = 0.75` means the top 25% of expression values will be assigned a +1, the bottom 25% will be assigned -1 and the remaining values assigned a 0. This is the format needed for iMAT to optimise the model to prioritise high expression gene associated reactions.
+The first of these functions: `TCGA_iMAT_Integrate()` takes TCGA data averaged over multiple samples for each cancer/normal tissue and performs iMAT based on genes of GSL metabolism. You can tune the function by adjusting the upper/lower quantiles for how the data is processed. An `upper_quantile = 0.25` and a `lower_quantile = 0.75` means the top 25% of expression values will be assigned a +1, the bottom 25% will be assigned -1 and the remaining values assigned a 0. This is the format needed for iMAT to optimise the model to prioritise high expression gene associated reactions. This function gives two outputs, a dataframe with the flux results in each tissue for each key lipid, but also a dictionary containing the solution objects for further analysis.
 
-The second of these functions: `TCGA_iMAT_sample_integrate()` performs simarly to `TCGA_iMAT_Integrate()`, however it doesn't average the data for a particular cancer/tissue, instead it calculates fluxes for each individual sample in the data set for the given `tissue` argument. This produces a lot more data and needs to run a lot of simulations so can take some time depending on the tissue you choose.
+The second of these functions: `TCGA_iMAT_sample_integrate()` performs simarly to `TCGA_iMAT_Integrate()`, however it doesn't average the data for a particular cancer/tissue, instead it calculates fluxes for each individual sample in the data set for the given `tissue` argument. This produces a lot more data and needs to run a lot of simulations so can take some time depending on the tissue you choose. Due to large numbers of samples this function only gives one output, a dataframe with flux results for each sample.
 
 ```python
 # Imports
 from pyGSLModel import TCGA_iMAT_integrate, TCGA_iMAT_sample_integrate
 
 # Performing iMAT on TCGA and GTEX data where expression has been averaged across samples of the same disease/tissue
-results_avg_df = TCGA_iMAT_integrate(model, upper_quantile = 0.25, lower_quantile = 0.75, epsilon=1, threshold=0.01)
+results_avg_df, sol_dict_TCGA = TCGA_iMAT_integrate(model, upper_quantile = 0.25, lower_quantile = 0.75, epsilon=1, threshold=0.01)
 
 # Performing iMAT on TCGA and GTEX data for each individual sample for a given tissue
 results_sample_df = TCGA_iMAT_sample_integrate(model, tissue="Brain", upper_quantile = 0.25, lower_quantile=0.75, epsilon=1, threshold=0.01)
