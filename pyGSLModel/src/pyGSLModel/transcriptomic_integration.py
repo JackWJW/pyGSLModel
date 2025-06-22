@@ -149,7 +149,7 @@ def TCGA_iMAT_integrate(model, upper_quantile = 0.25, lower_quantile = 0.75, eps
     """
     # Downloading and selecting cancer transcriptomic data
     df_input = pd.read_csv("https://raw.githubusercontent.com/JackWJW/pyGSLModel/main/Xena-TCGA_TARGET_GTEX_Data/Xena_Data_New.tsv",sep='\t')
-    df_cancer = df_input[(df_input["_sample_type"].isin(["Primary Tumor", "Normal Tissue"]))&(df_input["_study"].isin(["TCGA","GTEX"]))].copy()
+    df_cancer = df_input[(df_input["_sample_type"].isin(["Primary Tumor", "Normal Tissue", "Solid Tissue Normal"]))&(df_input["_study"].isin(["TCGA","GTEX"]))].copy()
 
     # Defining list of genes for analysis
     GENE_LIST = ['A4GALT', 'ABO', 'B3GALNT1', 'B3GALT1', 'B3GALT4', 'B3GALT5', 

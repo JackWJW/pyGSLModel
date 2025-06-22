@@ -106,7 +106,7 @@ def plot_model_results(data):
     plt.close(fig)
     return fig
 
-def visualise_flux_network(model, solution, file_path="./flux_network_graph.html",height:str="600px",width:str="800px"):
+def visualise_flux_network(model, solution, file_path="./flux_network_graph.html",height:str="600px",width:str="800px",met_col="#F6A6B2",rxn_col="#AED6F1"):
     """
     Generates a diagramatic visualisation of your model solution, with edges and nodes weighted by flux.
     Writes an html object for the visualisation
@@ -115,6 +115,10 @@ def visualise_flux_network(model, solution, file_path="./flux_network_graph.html
     - model : cobrapy model object
     - solution : model solution object
     - file_path : file path and file name for where to save the output e.g., './flux_network_graph.html'
+    - height : height as string e.g., "100px"
+    - width : width as string e.g., "100px" or "100%"
+    - met_col : defines colour of metaboltie nodes
+    - rxn_col : defines colour of reaction/gene nodes
     """
     # Creating a list of metabolites that we want to Record
     keep_metabolites = [
@@ -162,7 +166,7 @@ def visualise_flux_network(model, solution, file_path="./flux_network_graph.html
             G.add_node(mid,
                        label=met.name,
                        type="met",
-                       color="#F6A6B2",
+                       color=met_col,
                        size=20)
 
     # Add reaction nodes and edges
@@ -175,8 +179,8 @@ def visualise_flux_network(model, solution, file_path="./flux_network_graph.html
             rxn.id,
             label=",".join(g.id for g in rxn.genes) or rxn.id,
             type="rxn",
-            color="#AED6F1",
-            size= (abs_flux / max_flux) * 30 + 10,
+            color=rxn_col,
+            size= (abs_flux / max_flux) * 40 + 10,
         )
         # connect reactants → reaction → products
         for met, coeff in rxn.metabolites.items():
@@ -189,7 +193,7 @@ def visualise_flux_network(model, solution, file_path="./flux_network_graph.html
             G.add_edge(
                 src,
                 tgt,
-                value=(abs_flux / max_flux) * 5 + 1,
+                value=(abs_flux / max_flux) * 40 + 1,
                 title=f"flux={flux:.3g}"
             )
 

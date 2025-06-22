@@ -149,7 +149,7 @@ def TCGA_iMAT_integrate(model, upper_quantile = 0.25, lower_quantile = 0.75, eps
     """
     # Downloading and selecting cancer transcriptomic data
     df_input = pd.read_csv("https://raw.githubusercontent.com/JackWJW/pyGSLModel/main/Xena-TCGA_TARGET_GTEX_Data/Xena_Data_New.tsv",sep='\t')
-    df_cancer = df_input[(df_input["_sample_type"].isin(["Primary Tumor", "Normal Tissue"]))&(df_input["_study"].isin(["TCGA","GTEX"]))].copy()
+    df_cancer = df_input[(df_input["_sample_type"].isin(["Primary Tumor", "Normal Tissue", "Solid Tissue Normal"]))&(df_input["_study"].isin(["TCGA","GTEX"]))].copy()
 
     # Defining list of genes for analysis
     GENE_LIST = ['A4GALT', 'ABO', 'B3GALNT1', 'B3GALT1', 'B3GALT4', 'B3GALT5', 
@@ -179,6 +179,7 @@ def TCGA_iMAT_integrate(model, upper_quantile = 0.25, lower_quantile = 0.75, eps
     df_converted = df_avgs.apply(convert_col).copy()
 
     # Perform iMAT simulations for each cancer
+    sol_dict = {}
     all_rows = {}
     all_genes = [g.id for g in model.genes]
     colnames = df_converted.columns.to_list()
@@ -192,6 +193,8 @@ def TCGA_iMAT_integrate(model, upper_quantile = 0.25, lower_quantile = 0.75, eps
         model_weights = model_weights.reindex(all_genes, fill_value=0)
         imat_weights = gene_to_rxn_weights(model=model_copy,gene_weights=model_weights)
         imat_results = imat(model=model_copy,rxn_weights=imat_weights,epsilon=epsilon,threshold=threshold)
+        # Saving iMAT results in a dict
+        sol_dict[f"{col}_sol"] = imat_results
 
         #Tabulating results
         sample_df = tabulate_model_results(model_copy, imat_results)
@@ -203,7 +206,7 @@ def TCGA_iMAT_integrate(model, upper_quantile = 0.25, lower_quantile = 0.75, eps
     # Building the dataframe
     imat_data = pd.concat(all_rows.values(), axis=0,ignore_index=True)
 
-    return imat_data
+    return imat_data, sol_dict
 
 def TCGA_iMAT_sample_integrate(model, tissue, upper_quantile = 0.25, lower_quantile=0.75, epsilon=1, threshold=0.01):
     """
