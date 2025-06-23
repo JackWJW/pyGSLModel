@@ -149,10 +149,16 @@ def plot_model_results(data):
     """
     sns.set_style("ticks")
 
-    fig, axs = plt.subplots(nrows=2,figsize=(12,12))
+    fig, axs = plt.subplots(nrows=2,figsize=(12,8), gridspec_kw={'hspace': 0.75})
     sns.barplot(data=data,x="Key Product", y="Relative GSL Flux (%)",errorbar=None,ax=axs[0],color="skyblue",edgecolor="black")
     sns.barplot(data=data,x="Genes",y="Relative GSL Flux (%)",errorbar=None,ax=axs[1],color="skyblue",edgecolor="black")
-    plt.xticks(rotation = 20,ha="right")
+
+    for ax in axs:
+        for label in ax.get_xticklabels():
+            label.set_rotation(30)
+            label.set_ha("right")
+
+    plt.close()
     return fig
 
 def visualise_flux_network(model, solution, file_path="./flux_network_graph.html",height:str="600px",width:str="800px",met_col="#F6A6B2",rxn_col="#AED6F1"):
@@ -238,7 +244,7 @@ def visualise_flux_network(model, solution, file_path="./flux_network_graph.html
             label=",".join(g.id for g in rxn.genes) or rxn.id,
             type="rxn",
             color=rxn_col,
-            size= (abs_flux / max_flux) * 40 + 10,
+            size= (abs_flux / max_flux) * 50 + 10,
         )
         # connect reactants → reaction → products
         for met, coeff in rxn.metabolites.items():
@@ -251,7 +257,7 @@ def visualise_flux_network(model, solution, file_path="./flux_network_graph.html
             G.add_edge(
                 src,
                 tgt,
-                value=(abs_flux / max_flux) * 40 + 1,
+                value=(abs_flux / max_flux),
                 title=f"flux={flux:.3g}"
             )
 
