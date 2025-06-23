@@ -190,6 +190,7 @@ def prune_model(model, objective_choice="D14_Neuron",remove_transport="Yes"):
     core_reactions_multiples = subsystem_core_reactions_list + sim_core_reactions_list
 
     core_reaction_names = list(set(core_reactions_multiples))
+    core_reaction_names.append("MAR00920")
 
     core_reactions = []
     for r in core_reaction_names:
