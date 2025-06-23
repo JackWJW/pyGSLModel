@@ -17,35 +17,83 @@ def tabulate_model_results(model, sol):
     - model : A cobra.Model object
     - sol : A solution object output from run_metabolic model
     """
+    # metabolite mapping
+    series_map = {
+        'MAM01904g':'0-series(ganglio)',
+        'MAM01905g':'0-series(ganglio)',
+        'MAM01945g':'0-series(ganglio)',
+        'MAM02010g':'0-series(ganglio)',
+        'MAM01941g':'a-series(ganglio)',
+        'MAM02008g':'a-series(ganglio)',
+        'MAM02011g':'a-series(ganglio)',
+        'MAM02015g':'a-series(ganglio)',
+        'MAM02028g':'a-series(ganglio)',
+        'MAM01943g':'b-series(ganglio)',
+        'MAM01946g':'b-series(ganglio)',
+        'MAM01947g':'b-series(ganglio)',
+        'MAM02023g':'b-series(ganglio)',
+        'MAM02030g':'b-series(ganglio)',
+        'MAM02025g':'c-series(ganglio)',
+        'MAM02031g':'c-series(ganglio)',
+        'MAM02032g':'c-series(ganglio)',
+        'MAM02033g':'c-series(ganglio)',
+        'MAM02905g':'globo-series',
+        'MAM01861g':'globo-series',
+        'MAM01912g':'globo-series',
+        'MAM01959g':'globo-series',
+        'MAM01960g':'globo-series',
+        'MAM02346g':'(neo)lacto-series',
+        'MAM02347g':'(neo)lacto-series',
+        'MAM02330g':'(neo)lacto-series',
+        'MAM02904g':'(neo)lacto-series',
+        'MAM03095g':'(neo)lacto-series',
+        'MAM03092g':'(neo)lacto-series',
+        'MAM02328g':'LacCer',
+        'MAM01679g':'gal-series',
+        'MAM02947g':'gal-series'
+    }
+
     # Creating a list of metabolites that we want to Record
     keep_metabolites = [
-    "MAM01904g", # GA1
-    "MAM01905g", # GA2
-    "MAM01941g", # GD1a
-    "MAM01942g", # GD1alpha
-    "MAM01943g", # GD1b
-    "MAM01945g", # GD1c
-    "MAM01946g", # GD2
-    "MAM01947g", # GD3
-    "MAM01912g", # GB5
-    "MAM01959g", # GB4
-    "MAM01960g", # GB3
-    "MAM02008g", # GM1
-    "MAM02010g", # GM1b
-    "MAM02011g", # GM2
-    "MAM02015g", # GM3
-    "MAM02023g", # GQ1b
-    "MAM02025g", # GQ1c
-    "MAM02028g", # GT1a
-    "MAM02030g", # GT1b
-    "MAM02031g", # GT1c
-    "MAM02032g", # GT2
-    "MAM02033g", # GT3
+    "MAM01904g", # GA1 - 0-series ganglio
+    "MAM01905g", # GA2 - 0-series ganglio
+    "MAM01945g", # GD1c - 0-series ganglio
+    "MAM02010g", # GM1b - 0-series ganglio
+
+    "MAM01941g", # GD1a - a-series ganglio
+    "MAM02008g", # GM1 - a-series ganglio
+    "MAM02011g", # GM2 - a-series ganglio
+    "MAM02015g", # GM3 - a-series ganglio
+    "MAM02028g", # GT1a - a-series ganglio
+
+    "MAM01943g", # GD1b - b-series ganglio
+    "MAM01946g", # GD2 - b-series ganglio
+    "MAM01947g", # GD3 - b-series ganglio
+    "MAM02023g", # GQ1b - b-series ganglio
+    "MAM02030g", # GT1b - b-series ganglio
+
+    "MAM02025g", # GQ1c - c-series ganglio
+    "MAM02031g", # GT1c - c-series ganglio
+    "MAM02032g", # GT2 - c-series ganglio
+    "MAM02033g", # GT3 - c-series ganglio
+
+    "MAM02905g", # Sialyl-Galactosylgloboside - globo series
+    "MAM01861g", # fucosyl-galactosylgloboside - globo series
+    "MAM01912g", # GB5 - globo series
+    "MAM01959g", # GB4 - globo series
+    "MAM01960g", # GB3 - globo series
+
+    "MAM02346g", # LC3 - (neo)lacto series
+    "MAM02347g", # LC4 - (neo)lacto series
+    "MAM02330g", # paragloboside - (neo)lacto series
+    "MAM02904g", # sialylparagloboside - (neo)lacto series
+    "MAM03095g", # Type II H glycolipid - (neo)lacto series
+    "MAM03092g", # Type I H  - (neo)lacto series
+
     "MAM02328g", # LacCer_Pool
-    "MAM02346g", # LC3
-    "MAM02347g", # LC4
-    "MAM02330g", # paragloboside
-    "MAM02904g" # sialylparagloboside
+
+    "MAM01679g", # D-Galactosyl-N-acyl-sphingosine - gal-series
+    "MAM02947g", # sulfatide galactocerebroside - gal-series
     ]
 
     # Collect every reaction involving any of the metabolites in our list
@@ -66,22 +114,28 @@ def tabulate_model_results(model, sol):
         product_keep = [met.name
                         for met, c in rxn.metabolites.items()
                         if c > 0 and met.id in keep_metabolites]
+        product_keep_id = [met.id
+                        for met, c in rxn.metabolites.items()
+                        if c > 0 and met.id in keep_metabolites]
         genes = [g.id for g in rxn.genes]
         rows.append({
             "Reaction ID":   rxn.id,
             "Reactants":     ", ".join(reactants),
             "Products":      ", ".join(products),
             "Key Product":  ", ".join(product_keep),
+            "Key Product ID":  ", ".join(product_keep_id),
             "Genes":         ", ".join(genes)
         })
     temp_df = pd.DataFrame(rows)
     temp_df = temp_df[temp_df["Key Product"] != ""].copy()
+    temp_df = temp_df[temp_df["Genes"] != ""].copy()
     temp_df.set_index("Reaction ID", inplace=True)
 
     #Assigning the flux values
     flux_map = dict(sol.fluxes)
     temp_df["Flux (mmol/gDW/hr)"] = temp_df.index.map(flux_map)
     temp_df["Relative GSL Flux (%)"] = temp_df["Flux (mmol/gDW/hr)"] / temp_df["Flux (mmol/gDW/hr)"].sum() * 100
+    temp_df["Lipid Series"] = temp_df["Key Product ID"].map(series_map)
     results_data = temp_df.reset_index().sort_values("Flux (mmol/gDW/hr)",ascending=False)
     return results_data
 
@@ -94,16 +148,11 @@ def plot_model_results(data):
     - data : the tabulted pandas data frame from tabulate_model_results
     """
     sns.set_style("ticks")
-    df_vis = data[["Key Product", "Genes", "Flux (mmol/gDW/hr)","Relative GSL Flux (%)"]]
 
-    fig, axs = plt.subplots(ncols=2,figsize=(12,6))
+    fig, axs = plt.subplots(nrows=2,figsize=(12,12))
     sns.barplot(data=data,x="Key Product", y="Relative GSL Flux (%)",errorbar=None,ax=axs[0],color="skyblue",edgecolor="black")
     sns.barplot(data=data,x="Genes",y="Relative GSL Flux (%)",errorbar=None,ax=axs[1],color="skyblue",edgecolor="black")
-
-    for ax in fig.axes:
-        ax.tick_params(rotation = 90)
-        ax.set(xlabel=None)
-    plt.close(fig)
+    plt.xticks(rotation = 20,ha="right")
     return fig
 
 def visualise_flux_network(model, solution, file_path="./flux_network_graph.html",height:str="600px",width:str="800px",met_col="#F6A6B2",rxn_col="#AED6F1"):
@@ -122,33 +171,42 @@ def visualise_flux_network(model, solution, file_path="./flux_network_graph.html
     """
     # Creating a list of metabolites that we want to Record
     keep_metabolites = [
-    "MAM01904g", # GA1
-    "MAM01905g", # GA2
-    "MAM01941g", # GD1a
-    "MAM01942g", # GD1alpha
-    "MAM01943g", # GD1b
-    "MAM01945g", # GD1c
-    "MAM01946g", # GD2
-    "MAM01947g", # GD3
-    "MAM01912g", # GB5
-    "MAM01959g", # GB4
-    "MAM01960g", # GB3
-    "MAM02008g", # GM1
-    "MAM02010g", # GM1b
-    "MAM02011g", # GM2
-    "MAM02015g", # GM3
-    "MAM02023g", # GQ1b
-    "MAM02025g", # GQ1c
-    "MAM02028g", # GT1a
-    "MAM02030g", # GT1b
-    "MAM02031g", # GT1c
-    "MAM02032g", # GT2
-    "MAM02033g", # GT3
+    "MAM01904g", # GA1 - 0-series ganglio
+    "MAM01905g", # GA2 - 0-series ganglio
+    "MAM01945g", # GD1c - 0-series ganglio
+    "MAM02010g", # GM1b - 0-series ganglio
+
+    "MAM01941g", # GD1a - a-series ganglio
+    "MAM02008g", # GM1 - a-series ganglio
+    "MAM02011g", # GM2 - a-series ganglio
+    "MAM02015g", # GM3 - a-series ganglio
+    "MAM02028g", # GT1a - a-series ganglio
+
+    "MAM01943g", # GD1b - b-series ganglio
+    "MAM01946g", # GD2 - b-series ganglio
+    "MAM01947g", # GD3 - b-series ganglio
+    "MAM02023g", # GQ1b - b-series ganglio
+    "MAM02030g", # GT1b - b-series ganglio
+
+    "MAM02025g", # GQ1c - c-series ganglio
+    "MAM02031g", # GT1c - c-series ganglio
+    "MAM02032g", # GT2 - c-series ganglio
+    "MAM02033g", # GT3 - c-series ganglio
+
+    "MAM02905g", # Sialyl-Galactosylgloboside - globo series
+    "MAM01861g", # fucosyl-galactosylgloboside - globo series
+    "MAM01912g", # GB5 - globo series
+    "MAM01959g", # GB4 - globo series
+    "MAM01960g", # GB3 - globo series
+
+    "MAM02346g", # LC3 - (neo)lacto series
+    "MAM02347g", # LC4 - (neo)lacto series
+    "MAM02330g", # paragloboside - (neo)lacto series
+    "MAM02904g", # sialylparagloboside - (neo)lacto series
+    "MAM03095g", # Type II H glycolipid - (neo)lacto series
+    "MAM03092g", # Type I H  - (neo)lacto series
+
     "MAM02328g", # LacCer_Pool
-    "MAM02346g", # LC3
-    "MAM02347g", # LC4
-    "MAM02330g", # paragloboside
-    "MAM02904g" # sialylparagloboside
     ]
 
     # Collect every reaction involving any of the metabolites in our list
@@ -206,6 +264,11 @@ def visualise_flux_network(model, solution, file_path="./flux_network_graph.html
     )
     # Load from networkx
     net.from_nx(G)
+
+    for node in net.nodes:
+        node["font"] = {"size": 20}
+
+    net.write_html(file_path)
 
     # 4) Tweak physics/layout
     net.force_atlas_2based(gravity=-50, central_gravity=0.01, spring_length=200)
