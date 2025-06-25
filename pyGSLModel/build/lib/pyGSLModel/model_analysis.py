@@ -244,7 +244,7 @@ def visualise_flux_network(model, solution, file_path="./flux_network_graph.html
             label=",".join(g.id for g in rxn.genes) or rxn.id,
             type="rxn",
             color=rxn_col,
-            size= (abs_flux / max_flux) * 50 + 10,
+            size= (abs_flux / max_flux) * 100 + 10,
         )
         # connect reactants → reaction → products
         for met, coeff in rxn.metabolites.items():
@@ -257,8 +257,8 @@ def visualise_flux_network(model, solution, file_path="./flux_network_graph.html
             G.add_edge(
                 src,
                 tgt,
-                value=(abs_flux / max_flux),
-                title=f"flux={flux:.3g}"
+                weight=(abs_flux / max_flux)*75 + 1,
+                title=f"flux={flux:.3g}",
             )
 
     # 3) Build pyvis Network
@@ -268,15 +268,15 @@ def visualise_flux_network(model, solution, file_path="./flux_network_graph.html
         width=width,
         cdn_resources="remote"
     )
+
     # Load from networkx
     net.from_nx(G)
 
     for node in net.nodes:
-        node["font"] = {"size": 20}
-
-    net.write_html(file_path)
+        node["font"] = {"size": 50}
 
     # 4) Tweak physics/layout
-    net.force_atlas_2based(gravity=-50, central_gravity=0.01, spring_length=200)
+    net.force_atlas_2based(gravity=-50, central_gravity=0.002, spring_length=200)
+
     net.write_html(file_path)
     print(f"html file wrtten to: {file_path}")
