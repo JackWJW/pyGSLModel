@@ -284,6 +284,7 @@ def multi_fba(model, objective_choice):
         v_A, v_D, v_M = sol_A.fluxes, sol_D.fluxes, sol_M.fluxes
 
         combined_flux = (p_A*v_A) + (p_D*v_D) + (p_M*v_M)
+        combined_flux = combined_flux.clip(upper=1000)
 
         ### Creating the solution object ###
         sol_combined = Solution(
@@ -356,6 +357,7 @@ def multi_fba(model, objective_choice):
         v_A, v_D, v_M = sol_A.fluxes, sol_D.fluxes, sol_M.fluxes
 
         combined_flux = (p_A*v_A) + (p_D*v_D) + (p_M*v_M)
+        combined_flux = combined_flux.clip(upper=1000)
 
         ### Creating the solution object ###
         sol_combined = Solution(
@@ -458,6 +460,7 @@ def multi_fba(model, objective_choice):
         v_A, v_B, v_D, v_L, v_M = sol_A.fluxes, sol_B.fluxes, sol_D.fluxes, sol_L.fluxes, sol_M.fluxes
 
         combined_flux = (p_A*v_A) + (p_B*v_B) + (p_D*v_D) + (p_L*v_L) + (p_M*v_M)
+        combined_flux = combined_flux.clip(upper=1000)
 
         ### Creating the solution object ###
         sol_combined = Solution(
@@ -561,6 +564,7 @@ def multi_fba(model, objective_choice):
         v_A, v_B, v_D, v_L, v_M = sol_A.fluxes, sol_B.fluxes, sol_D.fluxes, sol_L.fluxes, sol_M.fluxes
 
         combined_flux = (p_A*v_A) + (p_B*v_B) + (p_D*v_D) + (p_L*v_L) + (p_M*v_M)
+        combined_flux = combined_flux.clip(upper=1000)
 
         ### Creating the solution object ###
         sol_combined = Solution(

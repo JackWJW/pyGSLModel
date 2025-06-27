@@ -134,6 +134,7 @@ def tabulate_model_results(model, sol):
     #Assigning the flux values
     flux_map = dict(sol.fluxes)
     temp_df["Flux (mmol/gDW/hr)"] = temp_df.index.map(flux_map)
+    temp_df = temp_df[temp_df["Key Product"] != "LacCer pool"]
     temp_df["Relative GSL Flux (%)"] = temp_df["Flux (mmol/gDW/hr)"] / temp_df["Flux (mmol/gDW/hr)"].sum() * 100
     temp_df["Lipid Series"] = temp_df["Key Product ID"].map(series_map)
     results_data = temp_df.reset_index().sort_values("Flux (mmol/gDW/hr)",ascending=False)
@@ -149,9 +150,10 @@ def plot_model_results(data):
     """
     sns.set_style("ticks")
 
-    fig, axs = plt.subplots(nrows=2,figsize=(12,8), gridspec_kw={'hspace': 0.75})
-    sns.barplot(data=data,x="Key Product", y="Relative GSL Flux (%)",errorbar=None,ax=axs[0],color="skyblue",edgecolor="black")
-    sns.barplot(data=data,x="Genes",y="Relative GSL Flux (%)",errorbar=None,ax=axs[1],color="skyblue",edgecolor="black")
+    fig, axs = plt.subplots(nrows=3,figsize=(12,12), gridspec_kw={'hspace': 0.75})
+    sns.barplot(data=data,x="Lipid Series", y="Relative GSL Flux (%)",errorbar=None,ax=axs[0],color="skyblue",edgecolor="black")
+    sns.barplot(data=data,x="Key Product", y="Relative GSL Flux (%)",errorbar=None,ax=axs[1],color="skyblue",edgecolor="black")
+    sns.barplot(data=data,x="Genes",y="Relative GSL Flux (%)",errorbar=None,ax=axs[2],color="skyblue",edgecolor="black")
 
     for ax in axs:
         for label in ax.get_xticklabels():
