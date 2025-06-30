@@ -1,4 +1,3 @@
 # Downloading pruned model
-from pyGSLModel import download_GSL_model
-
-model = download_GSL_model()
+import sys
+print(sys.prefix)
