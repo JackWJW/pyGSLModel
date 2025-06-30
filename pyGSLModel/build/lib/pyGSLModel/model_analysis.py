@@ -151,7 +151,7 @@ def plot_model_results(data):
     sns.set_style("ticks")
 
     fig, axs = plt.subplots(nrows=3,figsize=(12,12), gridspec_kw={'hspace': 0.75})
-    sns.barplot(data=data,x="Lipid Series", y="Relative GSL Flux (%)",errorbar=None,ax=axs[0],color="skyblue",edgecolor="black")
+    sns.barplot(data=data,x="Lipid Series", y="Relative GSL Flux (%)",errorbar=None,ax=axs[0],color="skyblue",edgecolor="black",estimator=sum)
     sns.barplot(data=data,x="Key Product", y="Relative GSL Flux (%)",errorbar=None,ax=axs[1],color="skyblue",edgecolor="black")
     sns.barplot(data=data,x="Genes",y="Relative GSL Flux (%)",errorbar=None,ax=axs[2],color="skyblue",edgecolor="black")
 
