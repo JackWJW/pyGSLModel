@@ -209,7 +209,7 @@ def TCGA_iMAT_integrate(model, upper_quantile = 0.25, lower_quantile = 0.75, eps
 
     return imat_data, sol_dict
 
-def TCGA_iMAT_sample_integrate(model, tissue, upper_quantile = 0.25, lower_quantile=0.75, epsilon=1, threshold=0.01):
+def TCGA_iMAT_sample_integrate(model, tissue, datasets="TCGA", upper_quantile = 0.25, lower_quantile=0.75, epsilon=1, threshold=0.01):
     """
     Performs iMAT transcriptomic integration (using the imatpy package) to generate fluxes for different cancer and normal tissue samples from TCGA and GTEX (accessed via Xena).
     Generates a flux preduction based on gene expression via iMAT for every sample corresponding to the specified tissue of interest.
@@ -222,6 +222,7 @@ def TCGA_iMAT_sample_integrate(model, tissue, upper_quantile = 0.25, lower_quant
                                 'Colon', 'Lymphatic tissue', 'Esophagus', 'Head and Neck region', 'Kidney', 'Liver', 'Lung', 
                                 'Lining of body cavities', 'Ovary', 'Pancreas', 'Paraganglia', 'Prostate', 'Rectum', 'Skin', 
                                 Stomach', 'Testis', 'Thymus', 'Thyroid Gland', 'Uterus', 'Endometrium', 'Eye'.
+    - datasets : defines which datasets to use to generate fluxome. Options are "TCGA" for only TCGA data, "GTEX" for only GTEX data or "TCGA-GTEX" for both.
     - upper_quantile : Defines the upper bound percentage of gene expression values for a sample to be assigned 1 for iMAT. If 0.25, the top 25% would be assigned 1
     - lower_quantile : Defines the lower bound percentage of gene expression values for a sample to be assigned -1 for iMAT. If 0.75, the bottom 25% would be assigned -1
     - epsilon : iMAT maximises the sum of high expressing reactions with flux > epsilon (default 1)
@@ -246,8 +247,17 @@ def TCGA_iMAT_sample_integrate(model, tissue, upper_quantile = 0.25, lower_quant
         'ST3GAL5', 'ST3GAL6', 'ST6GALNAC2', 'ST6GALNAC3', 'ST6GALNAC4', 'ST6GALNAC5', 
         'ST6GALNAC6', 'ST8SIA1', 'ST8SIA5', 'UGCG', 'UGT8']
     
+    if datasets == "TCGA":
+        study_choice = ["TCGA"]
+    elif datasets == "GTEX":
+        study_choice = ["GTEX"]
+    elif datasets == "TCGA-GTEX":
+        study_choice = ["TCGA", "GTEX"]
+    else:
+        raise ValueError(f"Error: datasets choice of '{datasets}' is invalid.")
+
     # Data preparation
-    df_input = df_input[(df_input["_primary_site"]==tissue)&(df_input["_study"].isin(["TCGA", "GTEX"]))].copy()
+    df_input = df_input[(df_input["_primary_site"]==tissue)&(df_input["_study"].isin(study_choice))].copy()
     df_mini = df_input.drop(columns=GENE_LIST).copy()
     df_format = df_input[GENE_LIST+["sample"]].set_index("sample").T.copy()
 
@@ -286,7 +296,7 @@ def TCGA_iMAT_sample_integrate(model, tissue, upper_quantile = 0.25, lower_quant
         sample_df = sample_df[["Lipid Series", "Flux (mmol/gDW/hr)"]].copy()
         sample_df = sample_df.groupby("Lipid Series")["Flux (mmol/gDW/hr)"].sum()
         sample_df = sample_df.to_frame().T.copy()
-        sample_df["tissue"] , sample_df["sample type"], sample_df["primary site"] = col
+        sample_df["sample"] = col
         all_rows[f"{col}_iMAT"] = sample_df
 
     # Building the dataframe
