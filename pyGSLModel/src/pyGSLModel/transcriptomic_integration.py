@@ -258,7 +258,6 @@ def TCGA_iMAT_sample_integrate(model, tissue, datasets="TCGA", upper_quantile = 
 
     # Data preparation
     df_input = df_input[(df_input["_primary_site"]==tissue)&(df_input["_study"].isin(study_choice))].copy()
-    df_mini = df_input.drop(columns=GENE_LIST).copy()
     df_format = df_input[GENE_LIST+["sample"]].set_index("sample").T.copy()
 
     # Defining a helper function to convert expression into 1, 0 or -1 for high, neutral and low expressed genes
@@ -301,7 +300,7 @@ def TCGA_iMAT_sample_integrate(model, tissue, datasets="TCGA", upper_quantile = 
 
     # Building the dataframe
     imat_data = pd.concat(all_rows.values(), axis=0,ignore_index=True)
-    imat_data_merged = pd.merge(df_mini, imat_data, on = "sample").copy()
+    imat_data_merged = pd.merge(df_input, imat_data, on = "sample").copy()
 
     return imat_data_merged
 
