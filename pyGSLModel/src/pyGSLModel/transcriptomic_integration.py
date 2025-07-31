@@ -292,9 +292,13 @@ def TCGA_iMAT_sample_integrate(model, tissue, datasets="TCGA", upper_quantile = 
 
         #Tabulating results
         sample_df = tabulate_model_results(model_copy, imat_results)
-        sample_df = sample_df[["Lipid Series", "Flux (mmol/gDW/hr)"]].copy()
-        sample_df = sample_df.groupby("Lipid Series")["Flux (mmol/gDW/hr)"].sum()
-        sample_df = sample_df.to_frame().T.copy()
+        ls_df = sample_df[["Lipid Series", "Flux (mmol/gDW/hr)"]].copy()
+        ls_df = ls_df.groupby("Lipid Series")["Flux (mmol/gDW/hr)"].sum()
+        ls_df = ls_df.to_frame().T.copy()
+        kp_df = sample_df[["Key Product", "Flux (mmol/gDW/hr)"]].copy()
+        kp_df = kp_df.groupby("Key Product")["Flux (mmol/gDW/hr)"].sum()
+        kp_df = kp_df.to_frame().T.copy()
+        sample_df = pd.concat([kp_df,ls_df],axis=1)
         sample_df["sample"] = col
         all_rows[f"{col}_iMAT"] = sample_df
 
