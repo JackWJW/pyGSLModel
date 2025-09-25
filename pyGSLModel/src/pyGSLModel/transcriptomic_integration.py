@@ -368,9 +368,8 @@ def iMAT_multi_integrate(model, data, upper_quantile = 0.25, lower_quantile = 0.
         all_rows[f"{col}_iMAT"] = sample_df
 
     # Building the dataframe
-    imat_data = pd.concat(all_rows.values(), axis=0,ignore_index=True).set_index("Sample")
-
-    return imat_data, sol_dict
+    imat_data = pd.concat(all_rows.values(), axis=0,ignore_index=True).set_index("sample")
+    return imat_data, sol_dict,
 
 def iMAT_integrate(model, data, upper_quantile = 0.25, lower_quantile = 0.75, epsilon=1, threshold=0.01):
     """
