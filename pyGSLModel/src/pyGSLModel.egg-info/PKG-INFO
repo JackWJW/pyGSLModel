@@ -1,4 +1,4 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.4
 Name: pyGSLModel
 Version: 0.0.10
 Summary: A python package for modeling GSL metabolism and performing transcriptomic integration
@@ -16,6 +16,14 @@ Requires-Dist: matplotlib
 Requires-Dist: seaborn
 Requires-Dist: imatpy
 Requires-Dist: numpy
+Dynamic: author
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: license
+Dynamic: license-file
+Dynamic: requires-dist
+Dynamic: summary
 
 # pyGSLModel
 
@@ -75,16 +83,20 @@ solution_ko = run_metabolic_model(model, method="mFBA", objective_choice="D14_Ne
 
 ### Analysing and Plotting Results
 As pyGSLModels focus is to simplify analysis of GSL metabolism, there are also included functions to analyse the metabolic simulation outputs.
+These include a tabulation function, a standard bar chart plotting function, and also a network visualisation function that draws the graph of GSL metabolism, with edge widths weighted by reaction flux from the simulation. This network graph is saved to a target folder as an interactive .html file which can be opened in a browser. This allows the user to customise the network to their liking.
 
 ```python
 # Imports
-from pyGSLModel import tabulate_model_results, plot_model_results
+from pyGSLModel import tabulate_model_results, plot_model_results, visualise_flux_network
 
 # First you can tabule the model results for key GSLs
 results_df = tabulate_model_results(model, solution)
 
 # You can then use that data frame as input to the default plotting function
 results_fig = plot_model_results(results_df)
+
+# You can also produce an interactive .html representation of the GSL metabolic network with edges weighted by flux
+visualise_flux_network(model,solution,file_path="C:/path/to/folder/my_network.html",height="1080px",width="100%",rxn_col="#1f77b4",met_col="#abdcff")
 ```
 
 ### Transcriptomic Integration
@@ -96,7 +108,7 @@ Two of the functions utilise TCGA and GTEX data from the TCGA_TARGET_GTEX datase
 
 The first of these functions: `TCGA_iMAT_Integrate()` takes TCGA data averaged over multiple samples for each cancer/normal tissue and performs iMAT based on genes of GSL metabolism. You can tune the function by adjusting the upper/lower quantiles for how the data is processed. An `upper_quantile = 0.25` and a `lower_quantile = 0.75` means the top 25% of expression values will be assigned a +1, the bottom 25% will be assigned -1 and the remaining values assigned a 0. This is the format needed for iMAT to optimise the model to prioritise high expression gene associated reactions. This function gives two outputs, a dataframe with the flux results in each tissue for each key lipid, but also a dictionary containing the solution objects for further analysis.
 
-The second of these functions: `TCGA_iMAT_sample_integrate()` performs simarly to `TCGA_iMAT_Integrate()`, however it doesn't average the data for a particular cancer/tissue, instead it calculates fluxes for each individual sample in the data set for the given `tissue` argument. This produces a lot more data and needs to run a lot of simulations so can take some time depending on the tissue you choose. Due to large numbers of samples this function only gives one output, a dataframe with flux results for each sample.
+The second of these functions: `TCGA_iMAT_sample_integrate()` performs simarly to `TCGA_iMAT_Integrate()`, however it doesn't average the data for a particular cancer/tissue, instead it calculates fluxes for each individual sample in the data set for the given `tissue` argument. You can also decide if you want to run simulations for both TCGA and GTEX data or just TCGA data with the dataset argument. This produces a lot more data and needs to run a lot of simulations so can take some time depending on the tissue you choose. Due to large numbers of samples this function only gives one output, a dataframe with flux results for each sample.
 
 ```python
 # Imports
@@ -106,7 +118,7 @@ from pyGSLModel import TCGA_iMAT_integrate, TCGA_iMAT_sample_integrate
 results_avg_df, sol_dict_TCGA = TCGA_iMAT_integrate(model, upper_quantile = 0.25, lower_quantile = 0.75, epsilon=1, threshold=0.01)
 
 # Performing iMAT on TCGA and GTEX data for each individual sample for a given tissue
-results_sample_df = TCGA_iMAT_sample_integrate(model, tissue="Brain", upper_quantile = 0.25, lower_quantile=0.75, epsilon=1, threshold=0.01)
+results_sample_df = TCGA_iMAT_sample_integrate(model, tissue="Brain", dataset="TCGA", upper_quantile = 0.25, lower_quantile=0.75, epsilon=1, threshold=0.01)
 ```
 
 The third and fourth iMAT integration methods allows the user to input their own data. The required format is a dataframe where each column represents a different sample and the index contains the gene symbols. The first of these methods (`iMAT_integrate`) take a dataframe with only a single column for the sample and returns a cobrapy solution object, the second of these methods (`iMAT_multi_integrate`) can take multiple sample columns but returns a dataframe with the fluxes for each sample stored.

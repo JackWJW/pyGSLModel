@@ -78,7 +78,7 @@ def prepare_objective(model,objective_choice="D14_Neuron"):
 
     Inputs:
     - model : a cobra.Model object
-    - objective_choice : "D14_Neuron", "D28_Neuron", "MG", "AC"
+    - objective_choice : "D14_Neuron", "D28_Neuron"
     """
     if objective_choice == "D14_Neuron":
         # Day 14 I3Neuron GSL composition
@@ -108,41 +108,6 @@ def prepare_objective(model,objective_choice="D14_Neuron"):
             'MAR08185' : 0.08, #GM1 - M
             'MAR08188' : 0.18, #GD1a - M
             'MAR08190' : 0.1, #GM2 - M
-        }
-        rxn_list = {}
-        for rid, w in obj_composition.items():
-            rxn = model.reactions.get_by_id(rid)
-            rxn_list[rxn] = w
-
-    elif objective_choice == "AC":
-        # IAstrocyte GSL composition
-        obj_composition = {
-            'MAR08165' : 0.23, #GA2 - A
-            'MAR08148' : 0.05, #Gb3 - B
-            'MAR08149' : 0.03, #Gb4 - B
-            'MAR08150' : 0.07, #Gb5/a2-3SpGB - B
-            'MAR08179' : 0.03, #GD3 - D
-            'MAR08277' : 0.03, #pGB - L
-            'MAR08184' : 0.5, #GM3 - M
-            'MAR08190' : 0.06, #GM2 - M
-        }
-        rxn_list = {}
-        for rid, w in obj_composition.items():
-            rxn = model.reactions.get_by_id(rid)
-            rxn_list[rxn] = w
-    
-    elif objective_choice == "MG":
-        # IMicroglia GSL composition
-        obj_composition = {
-            'MAR08165' : 0.02, #GA2 - A
-            'MAR08168' : 0.07, #GD1alpha - A
-            'MAR08148' : 0.11, #Gb3 - B
-            'MAR08149' : 0.1, #Gb4 - B
-            'MAR08150' : 0.07, #Gb5/a2-3SpGB - B
-            'MAR08179' : 0.02, #GD3 - D
-            'MAR08277' : 0.16, #pGB - L
-            'MAR08190' : 0.02, #GM2 - M
-            'MAR08184' : 0.43, #GM3 - M
         }
         rxn_list = {}
         for rid, w in obj_composition.items():
@@ -181,7 +146,7 @@ def prune_model(model, objective_choice="D14_Neuron",remove_transport="Yes"):
     
     sim_core_reactions_list = []
 
-    for obj_c in ["AC","MG","D14_Neuron","D28_Neuron"]:
+    for obj_c in ["D14_Neuron","D28_Neuron"]:
         sol = run_metabolic_model(model,method="FBA",objective_choice=obj_c)
         for rid, flux in sol.fluxes.items():
             if flux > 0:
@@ -216,7 +181,7 @@ def multi_fba(model, objective_choice):
 
     Inputs:
     - model : a cobra.Model object
-    - objective_choice : One of "D14_Neuron", "D28_Neuron", "AC" or "MG". Defines the cell type lipid profile target.
+    - objective_choice : One of "D14_Neuron", "D28_Neuron". Defines the cell type lipid profile target.
     """
 
     # Defining Multiple Objectives for Each Pathway Given the objective choice
@@ -366,213 +331,6 @@ def multi_fba(model, objective_choice):
             fluxes=combined_flux.to_dict()
         )
 
-    if objective_choice == "AC":
-        ### Path A ###
-        obj_composition_A = {
-            'MAR08165' : 0.23, #GA2 - A
-        }
-        
-        rxn_list_A = {}
-        for rid, w in obj_composition_A.items():
-            rxn = model.reactions.get_by_id(rid)
-            rxn_list_A[rxn] = w
-
-        ### Path B ###
-        obj_composition_B = {
-            'MAR08148' : 0.05, #Gb3 - B
-            'MAR08149' : 0.03, #Gb4 - B
-            'MAR08150' : 0.07, #Gb5/a2-3SpGB - B
-        }
-        
-        rxn_list_B = {}
-        for rid, w in obj_composition_B.items():
-            rxn = model.reactions.get_by_id(rid)
-            rxn_list_B[rxn] = w
-        
-        ### Path D ###
-        obj_composition_D = {
-            'MAR08179' : 0.03, #GD3 - D
-        }
-        
-        rxn_list_D = {}
-        for rid, w in obj_composition_D.items():
-            rxn = model.reactions.get_by_id(rid)
-            rxn_list_D[rxn] = w
-
-        ### Path L ###
-        obj_composition_L = {
-            'MAR08277' : 0.03, #pGB - L
-        }
-        
-        rxn_list_L = {}
-        for rid, w in obj_composition_L.items():
-            rxn = model.reactions.get_by_id(rid)
-            rxn_list_L[rxn] = w
-
-        ### Path M ###
-        obj_composition_M = {
-            'MAR08184' : 0.5, #GM3 - M
-            'MAR08190' : 0.06, #GM2 - M
-        }
-        
-        rxn_list_M = {}
-        for rid, w in obj_composition_M.items():
-            rxn = model.reactions.get_by_id(rid)
-            rxn_list_M[rxn] = w       
-
-        ### Running Path A simulation ###
-        model_A = model.copy()
-        model_A.objective = rxn_list_A
-        sol_A = model_A.optimize()
-
-        ### Running Path B simulation ###
-        model_B = model.copy()
-        model_B.objective = rxn_list_B
-        sol_B = model_B.optimize()
-
-        ### Running Path D simulation ###
-        model_D = model.copy()
-        model_D.objective = rxn_list_D
-        sol_D = model_D.optimize()   
-
-        ### Running Path L simulation ###
-        model_L = model.copy()
-        model_L.objective = rxn_list_L
-        sol_L = model_L.optimize()   
-
-        ### Running Path M simulation ###
-        model_M = model.copy()
-        model_M.objective = rxn_list_M
-        sol_M = model_M.optimize()
-
-        ### Computing Weights ###
-        W_A = sum(obj_composition_A.values())
-        W_B = sum(obj_composition_B.values())
-        W_D = sum(obj_composition_D.values())
-        W_L = sum(obj_composition_L.values())
-        W_M = sum(obj_composition_M.values())
-
-        total_W = W_A + W_B + W_D + W_L + W_M
-
-        p_A, p_B, p_D, p_L, p_M = W_A/total_W, W_B/total_W, W_D/total_W, W_L/total_W, W_M/total_W
-
-        ### Calculating the combined flux ###
-        v_A, v_B, v_D, v_L, v_M = sol_A.fluxes, sol_B.fluxes, sol_D.fluxes, sol_L.fluxes, sol_M.fluxes
-
-        combined_flux = (p_A*v_A) + (p_B*v_B) + (p_D*v_D) + (p_L*v_L) + (p_M*v_M)
-        combined_flux = combined_flux.clip(upper=1000)
-
-        ### Creating the solution object ###
-        sol_combined = Solution(
-            status = "optimal",
-            objective_value=0.0,
-            fluxes=combined_flux.to_dict()
-        )
-
-    if objective_choice == "MG":
-        ### Path A ###
-        obj_composition_A = {
-            'MAR08165' : 0.02, #GA2 - A
-            'MAR08168' : 0.07, #GD1alpha - A
-        }
-        
-        rxn_list_A = {}
-        for rid, w in obj_composition_A.items():
-            rxn = model.reactions.get_by_id(rid)
-            rxn_list_A[rxn] = w
-
-        ### Path B ###
-        obj_composition_B = {
-            'MAR08148' : 0.11, #Gb3 - B
-            'MAR08149' : 0.1, #Gb4 - B
-            'MAR08150' : 0.07, #Gb5/a2-3SpGB - B
-        }
-        
-        rxn_list_B = {}
-        for rid, w in obj_composition_B.items():
-            rxn = model.reactions.get_by_id(rid)
-            rxn_list_B[rxn] = w
-        
-        ### Path D ###
-        obj_composition_D = {
-            'MAR08179' : 0.02, #GD3 - D
-        }
-        
-        rxn_list_D = {}
-        for rid, w in obj_composition_D.items():
-            rxn = model.reactions.get_by_id(rid)
-            rxn_list_D[rxn] = w
-
-        ### Path L ###
-        obj_composition_L = {
-            'MAR08277' : 0.16, #pGB - L
-        }
-        
-        rxn_list_L = {}
-        for rid, w in obj_composition_L.items():
-            rxn = model.reactions.get_by_id(rid)
-            rxn_list_L[rxn] = w
-
-        ### Path M ###
-        obj_composition_M = {
-            'MAR08190' : 0.02, #GM2 - M
-            'MAR08184' : 0.43, #GM3 - M
-        }
-        
-        rxn_list_M = {}
-        for rid, w in obj_composition_M.items():
-            rxn = model.reactions.get_by_id(rid)
-            rxn_list_M[rxn] = w       
-
-        ### Running Path A simulation ###
-        model_A = model.copy()
-        model_A.objective = rxn_list_A
-        sol_A = model_A.optimize()
-
-        ### Running Path B simulation ###
-        model_B = model.copy()
-        model_B.objective = rxn_list_B
-        sol_B = model_B.optimize()
-
-        ### Running Path D simulation ###
-        model_D = model.copy()
-        model_D.objective = rxn_list_D
-        sol_D = model_D.optimize()   
-
-        ### Running Path L simulation ###
-        model_L = model.copy()
-        model_L.objective = rxn_list_L
-        sol_L = model_L.optimize()   
-
-        ### Running Path M simulation ###
-        model_M = model.copy()
-        model_M.objective = rxn_list_M
-        sol_M = model_M.optimize()
-
-        ### Computing Weights ###
-        W_A = sum(obj_composition_A.values())
-        W_B = sum(obj_composition_B.values())
-        W_D = sum(obj_composition_D.values())
-        W_L = sum(obj_composition_L.values())
-        W_M = sum(obj_composition_M.values())
-
-        total_W = W_A + W_B + W_D + W_L + W_M
-
-        p_A, p_B, p_D, p_L, p_M = W_A/total_W, W_B/total_W, W_D/total_W, W_L/total_W, W_M/total_W
-
-        ### Calculating the combined flux ###
-        v_A, v_B, v_D, v_L, v_M = sol_A.fluxes, sol_B.fluxes, sol_D.fluxes, sol_L.fluxes, sol_M.fluxes
-
-        combined_flux = (p_A*v_A) + (p_B*v_B) + (p_D*v_D) + (p_L*v_L) + (p_M*v_M)
-        combined_flux = combined_flux.clip(upper=1000)
-
-        ### Creating the solution object ###
-        sol_combined = Solution(
-            status = "optimal",
-            objective_value=0.0,
-            fluxes=combined_flux.to_dict()
-        )
-
     return sol_combined
 
 ### Function 6: Removing unwanted reactions associated with GSL trafficking ###
@@ -612,7 +370,7 @@ def run_metabolic_model(model,method="FBA",objective_choice="D14_Neuron",knockou
     Inputs:
     - model : a cobra.Model object that should be the model of interest
     - method : should be one of "FBA" or "mFBA" for Linear FBA, or multiple linear FBA (mFBA) respctively.
-    - objective_choice : defines which cell styled objective to use for the simulation and should be one of "D14_Neuron", "D28_Neuron", "AC" or "MG".
+    - objective_choice : defines which cell styled objective to use for the simulation and should be one of "D14_Neuron", "D28_Neuron".
     - knockout : allows you to input a gene in the format "ABCDE" to be knocked out of the model before performing the simulation. This is set to "WT" for Wild-type by default.
     """
     # Checking method
@@ -620,8 +378,8 @@ def run_metabolic_model(model,method="FBA",objective_choice="D14_Neuron",knockou
         raise ValueError(f"Invalid method ({method}), please select one of 'FBA','mFBA'")
     
     # Checking objective_choice
-    if objective_choice not in ["D14_Neuron", "D28_Neuron", "AC", "MG"]:
-        raise ValueError(f"Invalid objective_choice ({objective_choice}), please select one of 'D14_Neuron','D28_Neuron','AC','MG'")
+    if objective_choice not in ["D14_Neuron", "D28_Neuron"]:
+        raise ValueError(f"Invalid objective_choice ({objective_choice}), please select one of 'D14_Neuron','D28_Neuron'.")
 
     # Running the simulation
     model = model.copy()
