@@ -23,7 +23,16 @@ setup(
         "matplotlib",
         "seaborn",
         "imatpy",
-        "numpy"
+        "numpy",
+        "huggingface_hub",
+        "joblib",
+        "tqdm",
+        "scikit-learn",
+        "skorch",
+        "scipy",
+        "torch"
+
     ],
-    extra_requires={"dev": ["pytest","twine"]}
+    extra_requires={"dev": ["pytest","twine"]},
+    python_requires=">=3.10"
 )

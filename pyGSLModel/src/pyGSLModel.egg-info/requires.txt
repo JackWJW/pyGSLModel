@@ -7,3 +7,10 @@ matplotlib
 seaborn
 imatpy
 numpy
+huggingface_hub
+joblib
+tqdm
+scikit-learn
+skorch
+scipy
+torch

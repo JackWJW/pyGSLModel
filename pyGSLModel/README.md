@@ -135,6 +135,36 @@ mock_df = mock_df.set_index("Gene")
 results_custom_df = iMAT_multi_integrate(model, mock_df, upper_quantile = 0.25, lower_quantile = 0.75, epsilon=1, threshold=0.01)
 ```
 
+### Calculating GSL risk scores for prognosis prediction in lower grade glioma based on RNA-Seq data
+pyGSLModel enables the calculation of GSl risk scores for lower grade glioma RNA-Seq data. The risk scores are calculated through an ensemble machine learning approach. For more details see the github repository: [JACKWJW Github LGG Prognosis Prediction](https://github.com/JackWJW/LGG_Prognosis_Prediction). Check the repository for updates as to when the paper is published!
+
+The Ensemble machine learning approach was validated by training on TCGA data, before validation against CGGA data. Final models were then trained using both TCGA and CGGA data. Models can be accessed via huggingface: [JACKWJW Hugging Face](https://huggingface.co/JackWJW/LGG_Prognosis_Ensemble)
+
+To calculate the GSL risk score your your data, you can use the calculate_GSL_score function. Data should be provided in the form of pandas dataframe with gene symbols as index and samples as columns. It is essential that expression values are recorded as TPMs (the function will log2 normalise the TPM values internally, so raw TPMs must be provided).
+
+```python
+# Imports
+from pyGSLModel import calculate_GSL_score
+
+# Data should be in the format with gene symbols as index and samples as columns.
+# You can provide your full RNA-seq datasets in this format, the function will trim the data to include only the relevant columns internally.
+# Expression data should be in the TPM format
+d = {
+    "Gene" : ["B4GALNT1", "ST3GAL5", "ST8SIA1","A4GALT"],
+    "Sample_1" : [8,6,4,2],
+    "Sample_2" : [2,4,6,8]
+}
+
+# Converting the dictionary to a pandas dataframe and setting the index to Gene
+test_df = pd.DataFrame(d)
+test_df = test_df.set_index("Gene").copy()
+
+# Perfoming GSL risk score calculation
+results_df = calculate_GSL_score(data=test_df)
+```
+
+
+
 ## Dependencies and License
 pyGSLModel is under a GNU license.
 Dependecies include:
@@ -149,3 +179,5 @@ Dependecies include:
 - numpy (BSD)
 - networkx (BSD)
 - pyvis (BSD)
+- pytorch (BSD)
+- sklearn (BSD)
