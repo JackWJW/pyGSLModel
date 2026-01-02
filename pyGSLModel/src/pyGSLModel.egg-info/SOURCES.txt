@@ -1,6 +1,7 @@
 LICENSE
 README.md
 setup.py
+src/pyGSLModel/GSL_score.py
 src/pyGSLModel/__init__.py
 src/pyGSLModel/model_analysis.py
 src/pyGSLModel/model_preparation.py

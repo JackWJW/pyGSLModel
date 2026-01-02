@@ -5,6 +5,7 @@ from imatpy.parse_gpr import gene_to_rxn_weights
 from imatpy.imat import imat
 
 import numpy as np
+from tqdm.auto import tqdm
 
 ### Function 10 Integrating transcriptomic data for Glioblastoma/Glioma into the model ###
 def TCGA_DEFlux_integrate(model, objective_choice="AC",tissue="Brain",comparison="TCGA",fc_threshold=0.5):
@@ -185,9 +186,8 @@ def TCGA_iMAT_integrate(model, upper_quantile = 0.25, lower_quantile = 0.75, eps
     colnames = df_converted.columns.to_list()
     imat_counter = 0
     imat_total = len(colnames)
-    for col in colnames:
+    for col in tqdm(colnames, desc="Simulations Performed"):
         imat_counter += 1
-        print(f"Simulations Performed:{imat_counter}/{imat_total}")
         model_copy = model.copy()
         model_weights = pd.Series(df_converted[col])
         model_weights = model_weights.reindex(all_genes, fill_value=0)
@@ -281,9 +281,8 @@ def TCGA_iMAT_sample_integrate(model, tissue, datasets="TCGA", upper_quantile = 
     colnames = df_converted.columns.to_list()
     imat_counter = 0
     imat_total = len(colnames)
-    for col in colnames:
+    for col in tqdm(colnames, desc="Simulations Performed"):
         imat_counter += 1
-        print(f"Simulations Performed:{imat_counter}/{imat_total}")
         model_copy = model.copy()
         model_weights = pd.Series(df_converted[col])
         model_weights = model_weights.reindex(all_genes, fill_value=0)
@@ -343,9 +342,8 @@ def iMAT_multi_integrate(model, data, upper_quantile = 0.25, lower_quantile = 0.
     colnames = df_converted.columns.to_list()
     imat_counter = 0
     imat_total = len(colnames)
-    for col in colnames:
+    for col in tqdm(colnames, desc="Simulations Performed"):
         imat_counter += 1
-        print(f"Simulations Performed:{imat_counter}/{imat_total}")
         model_copy = model.copy()
         model_weights = pd.Series(df_converted[col])
         model_weights = model_weights.reindex(all_genes, fill_value=0)
