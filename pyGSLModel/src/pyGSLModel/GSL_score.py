@@ -2,18 +2,20 @@ from .model_preparation import *
 from .model_analysis import *
 from .transcriptomic_integration import *
 
+import sys
+import json
+
 from huggingface_hub import hf_hub_download
 import joblib
 import numpy as np
 import pandas as pd
-import sys
-import json
 
 from skorch.classifier import NeuralNetClassifier
 import torch
 import torch.nn as nn
 from scipy.special import expit
 
+# Definingh FocalLoss for ANN
 class FocalLoss(nn.Module):
     def __init__(self, alpha=0.25, gamma=5, reduction='mean'):
         super().__init__()
@@ -61,41 +63,67 @@ class NeuralNetBinaryClassifier(NeuralNetClassifier):
         logits = self.forward(X).detach().cpu().numpy()
         probs = expit(logits)
         return np.hstack((1 - probs, probs))
-
-_main = sys.modules.get("__main__")
-_this = sys.modules.get(__name__)  # pyGSLModel.GSL_score module object
-for _name in ("FocalLoss", "DeepBinary", "NeuralNetBinaryClassifier"):
-    if hasattr(_this, _name) and _main is not None:
-        setattr(_main, _name, getattr(_this, _name))
+    
+def predict_proba_from_module(module: nn.Module, X: np.ndarray, device: str = "cpu") -> np.ndarray:
+    """Return Nx2 array like sklearn predict_proba (cols [p0,p1])"""
+    module = module.to(device)
+    module.eval()
+    with torch.no_grad():
+        X_t = torch.from_numpy(np.asarray(X, dtype=np.float32)).to(device)
+        logits = module(X_t).cpu().numpy().ravel()  # shape (N,)
+        probs1 = expit(logits)  # sigmoid
+        probs0 = 1.0 - probs1
+        return np.vstack([probs0, probs1]).T
 
 #Collecting models from hugging face
 
 repo_id = "JackWJW/LGG_Prognosis_Ensemble"
 
-svm_file = hf_hub_download(repo_id=repo_id, filename = "Complete_Model/models/SVM.pkl")
-rf_file = hf_hub_download(repo_id=repo_id, filename = "Complete_Model/models/RandomForest.pkl")
-xgb_file = hf_hub_download(repo_id=repo_id, filename = "Complete_Model/models/XGBoost.pkl")
-lr_file = hf_hub_download(repo_id=repo_id, filename = "Complete_Model/models/LogisticRegression.pkl")
-ann_pipe_file = hf_hub_download(repo_id=repo_id, filename = "Complete_Model/models/ANN_pipeline.pkl")
-ann_param_file = hf_hub_download(repo_id=repo_id, filename = "Complete_Model/models/ANN_params.pt")
+svm_file = hf_hub_download(repo_id=repo_id, filename="LGG_Prediction_Models/models/SVM_pipeline.joblib")
+rf_file  = hf_hub_download(repo_id=repo_id, filename="LGG_Prediction_Models/models/RandomForest_pipeline.joblib")
+lr_file  = hf_hub_download(repo_id=repo_id, filename="LGG_Prediction_Models/models/LogisticRegression_pipeline.joblib")
+xgb_file = hf_hub_download(repo_id=repo_id, filename="LGG_Prediction_Models/models/XGBoost.joblib")
 
-scaler_file = hf_hub_download(repo_id=repo_id, filename="Complete_Model/ensemble/scaler.pkl")
-beta_file = hf_hub_download(repo_id=repo_id, filename="Complete_Model/ensemble/beta_vec.npy")
-ens_thresh_file = hf_hub_download(repo_id=repo_id, filename="Complete_Model/ensemble/ens_threshold.json")
+ann_state_file   = hf_hub_download(repo_id=repo_id, filename="LGG_Prediction_Models/models/ANN_state_dict.pt")
+ann_config_file  = hf_hub_download(repo_id=repo_id, filename="LGG_Prediction_Models/models/ANN_config.json")
+ann_scaler_file  = hf_hub_download(repo_id=repo_id, filename="LGG_Prediction_Models/models/ANN_preprocessor_scaler.joblib")  # optional
+ann_vt_file      = hf_hub_download(repo_id=repo_id, filename="LGG_Prediction_Models/models/ANN_preprocessor_varthresh.joblib")  # optional
 
-#Loading in Models
+scaler_file = hf_hub_download(repo_id=repo_id, filename="LGG_Prediction_Models/ensemble/scaler.joblib")
+beta_file   = hf_hub_download(repo_id=repo_id, filename="LGG_Prediction_Models/ensemble/beta_vec.npy")
+ens_thresh_file = hf_hub_download(repo_id=repo_id, filename="LGG_Prediction_Models/ensemble/ens_threshold.json")
 
+# Load them
 svm = joblib.load(svm_file)
-rf = joblib.load(rf_file)
+rf  = joblib.load(rf_file)
+lr  = joblib.load(lr_file)
 xgb = joblib.load(xgb_file)
-lr = joblib.load(lr_file)
-ann = joblib.load(ann_pipe_file)
-ann.named_steps["clf"].load_params(f_params=ann_param_file)
 
+# ANN: load config + state_dict, reconstruct module
+ann_config = json.load(open(ann_config_file))
+ann_module = DeepBinary(
+    hidden_dim=ann_config["module_args"].get("hidden_dim"),
+    num_layers=ann_config["module_args"].get("num_layers"),
+    dropout_rate=ann_config["module_args"].get("dropout_rate"),
+)
+# load state dict (CPU safe)
+state = torch.load(ann_state_file, map_location="cpu")
+ann_module.load_state_dict(state)
+
+# optional: load ANN preprocessor(s)
+try:
+    ann_scaler = joblib.load(ann_scaler_file)
+except Exception:
+    ann_scaler = None
+try:
+    ann_vt = joblib.load(ann_vt_file)
+except Exception:
+    ann_vt = None
+
+# ensemble components
 scaler = joblib.load(scaler_file)
 beta = np.load(beta_file)
-
-ens_thresh_json = json.load(open(ens_thresh_file))
+ens_thresh = json.load(open(ens_thresh_file)).get("ensemble_threshold")
 
 def calculate_GSL_score(data):
     """
@@ -134,9 +162,15 @@ def calculate_GSL_score(data):
     probs["RandomForest"] = rf.predict_proba(combined_df)[:,1]
     probs["XGBoost"] = xgb.predict_proba(combined_df)[:,1]
     probs["LogisticRegression"] = lr.predict_proba(combined_df)[:,1]
-    probs["ANN"] = ann.predict_proba(combined_df.astype(np.float32))[:,1]
 
-    ens_thresh = ens_thresh_json.get("ensemble_threshold", None)
+    ann_X = combined_df.copy()
+    if ann_vt is not None:
+        ann_X = ann_vt.transform(ann_X)
+    if ann_scaler is not None:
+        ann_X = ann_scaler.transform(ann_X)
+    # get ANN probs using the pure PyTorch module
+    ann_probs2col = predict_proba_from_module(ann_module, np.asarray(ann_X, dtype=np.float32), device="cpu")  # Nx2
+    probs["ANN"] = ann_probs2col[:, 1]
 
     #Ensemble calculation
     model_list = ["SVM","RandomForest","XGBoost","LogisticRegression","ANN"]

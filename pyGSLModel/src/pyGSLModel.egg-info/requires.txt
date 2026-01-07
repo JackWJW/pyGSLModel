@@ -14,3 +14,4 @@ scikit-learn
 skorch
 scipy
 torch
+pyvis

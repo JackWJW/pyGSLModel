@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: pyGSLModel
-Version: 0.0.10
+Version: 1.0.0
 Summary: A python package for modeling GSL metabolism and performing transcriptomic integration
 Home-page: https://github.com/JackWJW/pyGSLModel
 Author: Jack Welland
@@ -24,6 +24,7 @@ Requires-Dist: scikit-learn
 Requires-Dist: skorch
 Requires-Dist: scipy
 Requires-Dist: torch
+Requires-Dist: pyvis
 Dynamic: author
 Dynamic: description
 Dynamic: description-content-type

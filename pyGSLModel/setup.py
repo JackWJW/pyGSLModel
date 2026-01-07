@@ -5,7 +5,7 @@ with open("./README.md", "r") as f:
 
 setup(
     name="pyGSLModel",
-    version="0.0.10",
+    version="1.0.0",
     description="A python package for modeling GSL metabolism and performing transcriptomic integration",
     package_dir={"":"src"},
     packages=find_packages(where="src"),
@@ -30,7 +30,8 @@ setup(
         "scikit-learn",
         "skorch",
         "scipy",
-        "torch"
+        "torch",
+        "pyvis"
 
     ],
     extra_requires={"dev": ["pytest","twine"]},
